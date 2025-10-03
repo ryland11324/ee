@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Parking Lot Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #2c3e50;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #gameCanvas {
+            border: 3px solid #34495e;
+            border-radius: 5px;
+            background: #95a5a6;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1000;
+            min-width: 200px;
+            text-align: center;
+            display: none;
+        }
+
+        .score-display .score {
+            font-size: 24px;
+            color: #f1c40f;
+            margin-bottom: 5px;
+        }
+
+        .score-display .status {
+            font-size: 14px;
+            color: #ecf0f1;
+        }
+
+        .menu {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .menu h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .coin-display {
+            background: #f1c40f;
+            color: #2c3e50;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .menu-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .menu-btn.secondary {
+            background: #e74c3c;
+        }
+
+        .menu-btn.secondary:hover {
+            background: #c0392b;
+        }
+
+        .menu-btn.shop {
+            background: #27ae60;
+            border: 3px solid #1e8449;
+            font-size: 20px;
+        }
+
+        .menu-btn.shop:hover {
+            background: #229954;
+        }
+
+        .level-select {
+            display: none;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .level-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            pointer-events: auto;
+        }
+
+        .level-btn:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        .level-btn.available {
+            background: #3498db;
+            cursor: pointer;
+        }
+
+        .level-btn.available:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .level-btn:not(.available) {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .shop {
+            display: none;
+            text-align: left;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .shop-items {
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .shop-items::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .shop-items::-webkit-scrollbar-track {
+            background: #ecf0f1;
+            border-radius: 4px;
+        }
+
+        .shop-items::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+
+        .shop-items::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+
+        .shop-item {
+            background: #ecf0f1;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .shop-item.purchased {
+            background: #d5dbdb;
+            opacity: 0.7;
+        }
+
+        .shop-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .shop-btn:hover {
+            background: #229954;
+        }
+
+        .shop-btn.purchased {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .back-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: #7f8c8d;
+        }
+
+        .completion-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .completion-panel {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .completion-panel h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .completion-stats {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .coins-earned {
+            color: #f1c40f;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .completion-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .completion-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .completion-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .completion-btn.shop {
+            background: #27ae60;
+        }
+
+        .completion-btn.shop:hover {
+            background: #229954;
+        }
+
+        .completion-btn.continue {
+            background: #e74c3c;
+        }
+
+        .completion-btn.continue:hover {
+            background: #c0392b;
+        }
+
+        .floating-shop-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #27ae60;
+            color: white;
+            border: 3px solid #1e8449;
+            padding: 15px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 1500;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .floating-shop-btn:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <!-- Floating Shop Button -->
+    <button class="floating-shop-btn" onclick="showShop()">SHOP</button>
+    
+    <div class="score-display">
+        <div class="score">Score: <span id="accuracyScore">0%</span></div>
+        <div class="status">
+            <span id="statusText">Ready to park!</span><br>
+            Level: <span id="levelDisplay">1</span>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="mainMenu" class="menu" style="display: block;">
+        <h1>Parking Lot Game</h1>
+        <div class="coin-display">Coins: <span id="totalCoins">0</span></div>
+        <div class="menu-buttons">
+            <button class="menu-btn" onclick="showLevelSelect()">Play Game</button>
+            <button class="menu-btn shop" onclick="showShop()">Shop</button>
+            <button class="menu-btn secondary" onclick="resetProgress()">Reset Progress</button>
+        </div>
+    </div>
+
+    <!-- Level Selection -->
+    <div id="levelSelect" class="menu" style="display: none !important;">
+        <h1>Select Level</h1>
+        <div class="coin-display">Coins: <span id="levelSelectCoins">0</span></div>
+        <div class="level-select" style="display: flex;">
+            <button class="level-btn available" onclick="startLevel(1)">Level 1<br>Basic Parking Lot<br>Reward: 10 coins</button>
+            <button class="level-btn" id="level2Btn" onclick="startLevel(2)">Level 2<br>Bakery District<br>Reward: 20 coins<br><small>Complete Level 1</small></button>
+            <button class="level-btn" id="level3Btn" onclick="startLevel(3)">Level 3<br>Corporate Plaza<br>Reward: 30 coins<br><small>Complete Level 2</small></button>
+            <button class="level-btn" id="level4Btn" onclick="startLevel(4)">Level 4<br>Shopping Mall<br>Reward: 40 coins<br><small>Complete Level 3</small></button>
+            <button class="level-btn" id="level5Btn" onclick="startLevel(5)">Level 5<br>Emergency Hospital<br>Reward: 50 coins<br><small>Complete Level 4</small></button>
+        </div>
+        <button class="back-btn" onclick="showMainMenu()">Back to Main Menu</button>
+    </div>
+
+    <!-- Shop -->
+    <div id="shop" class="menu shop" style="display: none !important;">
+        <h1>Shop</h1>
+        <div class="coin-display">Coins: <span id="shopCoins">0</span></div>
+        <div class="shop-items">
+            <h3 style="color: #2c3e50; margin: 10px 0 8px 0; font-size: 16px;">Car Colors</h3>
+            <div class="shop-item" id="blueCar">
+                <div>
+                    <strong>Blue Car</strong><br>
+                    <small>Changes car color to blue</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('blueCar', 15)">15 coins</button>
+            </div>
+            <div class="shop-item" id="greenCar">
+                <div>
+                    <strong>Green Car</strong><br>
+                    <small>Changes car color to green</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('greenCar', 25)">25 coins</button>
+            </div>
+            <div class="shop-item" id="purpleCar">
+                <div>
+                    <strong>Purple Car</strong><br>
+                    <small>Changes car color to purple</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('purpleCar', 40)">40 coins</button>
+            </div>
+            <div class="shop-item" id="yellowCar">
+                <div>
+                    <strong>Yellow Car</strong><br>
+                    <small>Changes car color to yellow</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('yellowCar', 35)">35 coins</button>
+            </div>
+            <div class="shop-item" id="blackCar">
+                <div>
+                    <strong>Black Car</strong><br>
+                    <small>Changes car color to black</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('blackCar', 60)">60 coins</button>
+            </div>
+            <div class="shop-item" id="rainbowCar">
+                <div>
+                    <strong>Rainbow Car</strong><br>
+                    <small>Special rainbow color effect</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('rainbowCar', 100)">100 coins</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin: 15px 0 8px 0; font-size: 16px;">Performance Upgrades</h3>
+            <div class="shop-item" id="speedBoost">
+                <div>
+                    <strong>Speed Boost</strong><br>
+                    <small>Increases car speed by 50%</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('speedBoost', 50)">50 coins</button>
+            </div>
+            <div class="shop-item" id="betterSteering">
+                <div>
+                    <strong>Better Steering</strong><br>
+                    <small>Improves turning responsiveness</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('betterSteering', 75)">75 coins</button>
+            </div>
+            <div class="shop-item" id="biggerParkingSpace">
+                <div>
+                    <strong>Bigger Parking Space</strong><br>
+                    <small>Increases target parking space size</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('biggerParkingSpace', 120)">120 coins</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin: 15px 0 8px 0; font-size: 16px;">Visual Effects</h3>
+            <div class="shop-item" id="carTrail">
+                <div>
+                    <strong>Car Trail Effect</strong><br>
+                    <small>Adds a trail behind your car</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('carTrail', 45)">45 coins</button>
+            </div>
+            <div class="shop-item" id="sparkles">
+                <div>
+                    <strong>Sparkle Effect</strong><br>
+                    <small>Adds sparkles when parking well</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('sparkles', 80)">80 coins</button>
+            </div>
+            <div class="shop-item" id="nightMode">
+                <div>
+                    <strong>Night Mode</strong><br>
+                    <small>Changes maps to nighttime</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('nightMode', 90)">90 coins</button>
+            </div>
+        </div>
+        <button class="back-btn" onclick="showMainMenu()">Back to Main Menu</button>
+    </div>
+
+    <!-- Completion Screen -->
+    <div id="completionScreen" class="completion-screen">
+        <div class="completion-panel">
+            <h2>Level Complete!</h2>
+            <div class="completion-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Accuracy:</span>
+                    <span class="stat-value" id="completionAccuracy">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Coins Earned:</span>
+                    <span class="coins-earned" id="completionCoins">+0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Coins:</span>
+                    <span class="stat-value" id="completionTotalCoins">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Level:</span>
+                    <span class="stat-value" id="completionLevel">1</span>
+                </div>
+            </div>
+            <div class="completion-buttons">
+                <button class="completion-btn continue" onclick="continueToNextLevel()">Continue to Next Level</button>
+                <button class="completion-btn shop" onclick="goToShopFromCompletion()">Visit Shop</button>
+                <button class="completion-btn" onclick="goToMainMenuFromCompletion()">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Player data
+        let playerData = {
+            coins: parseInt(localStorage.getItem('parkingCoins') || '0'),
+            completedLevels: JSON.parse(localStorage.getItem('completedLevels') || '[1]'),
+            purchasedItems: JSON.parse(localStorage.getItem('purchasedItems') || '[]'),
+            currentCarColor: localStorage.getItem('carColor') || 'red',
+            speedBoost: JSON.parse(localStorage.getItem('speedBoost') || 'false'),
+            betterSteering: JSON.parse(localStorage.getItem('betterSteering') || 'false'),
+            biggerParkingSpace: JSON.parse(localStorage.getItem('biggerParkingSpace') || 'false')
+        };
+
+        // Car properties
+        let car = {
+            x: 100,
+            y: 300,
+            width: 40,
+            height: 20,
+            angle: 0,
+            speed: 0,
+            maxSpeed: playerData.speedBoost ? 4.5 : 3,
+            acceleration: 0.1,
+            friction: 0.05,
+            steeringAngle: 0,
+            maxSteeringAngle: Math.PI / 4
+        };
+
+        // Game state
+        let gameState = {
+            isMoving: false,
+            moveDirection: null,
+            isSteering: false,
+            steeringDirection: null,
+            currentLevel: 1,
+            isParked: false,
+            accuracy: 0,
+            targetParkingSpace: null,
+            coinsEarned: 0
+        };
+
+        // Level configurations with different themes
+        const levelConfigs = [
+            // Level 1 - Basic Parking Lot
+            {
+                name: "Basic Parking Lot",
+                theme: "basic",
+                parkingSpaces: [
+                    { x: 650, y: 200, width: 50, height: 80, angle: 0, occupied: false }
+                ],
+                obstacles: [],
+                decorations: []
+            },
+            // Level 2 - Bakery District (Crowded)
+            {
+                name: "Bakery District",
+                theme: "bakery",
+                parkingSpaces: [
+                    { x: 650, y: 250, width: 45, height: 75, angle: 0, occupied: false }
+                ],
+                obstacles: [
+                    { x: 200, y: 150, width: 80, height: 20, type: "delivery_truck" },
+                    { x: 400, y: 450, width: 60, height: 25, type: "cart" }
+                ],
+                decorations: [
+                    { x: 100, y: 100, type: "bakery_sign" },
+                    { x: 300, y: 80, type: "crowd" },
+                    { x: 500, y: 120, type: "bakery_sign" }
+                ]
+            },
+            // Level 3 - Office Building
+            {
+                name: "Corporate Plaza",
+                theme: "office",
+                parkingSpaces: [
+                    { x: 650, y: 300, width: 50, height: 80, angle: 0, occupied: false }
+                ],
+                obstacles: [
+                    { x: 250, y: 200, width: 100, height: 30, type: "construction_barrier" },
+                    { x: 450, y: 400, width: 70, height: 20, type: "cone" }
+                ],
+                decorations: [
+                    { x: 150, y: 50, type: "office_building" },
+                    { x: 350, y: 60, type: "office_building" },
+                    { x: 550, y: 70, type: "office_building" }
+                ]
+            },
+            // Level 4 - Shopping Mall
+            {
+                name: "Shopping Mall",
+                theme: "mall",
+                parkingSpaces: [
+                    { x: 650, y: 350, width: 45, height: 75, angle: 0, occupied: false }
+                ],
+                obstacles: [
+                    { x: 180, y: 180, width: 90, height: 25, type: "shopping_cart" },
+                    { x: 380, y: 320, width: 85, height: 25, type: "shopping_cart" },
+                    { x: 280, y: 480, width: 95, height: 25, type: "shopping_cart" }
+                ],
+                decorations: [
+                    { x: 80, y: 90, type: "mall_sign" },
+                    { x: 280, y: 85, type: "mall_sign" },
+                    { x: 480, y: 95, type: "mall_sign" }
+                ]
+            },
+            // Level 5 - Hospital (Emergency)
+            {
+                name: "Emergency Hospital",
+                theme: "hospital",
+                parkingSpaces: [
+                    { x: 650, y: 400, width: 40, height: 70, angle: 0, occupied: false }
+                ],
+                obstacles: [
+                    { x: 200, y: 150, width: 120, height: 35, type: "ambulance" },
+                    { x: 350, y: 350, width: 80, height: 30, type: "emergency_cone" },
+                    { x: 450, y: 500, width: 100, height: 35, type: "ambulance" }
+                ],
+                decorations: [
+                    { x: 120, y: 60, type: "hospital_sign" },
+                    { x: 320, y: 65, type: "hospital_sign" },
+                    { x: 520, y: 70, type: "hospital_sign" }
+                ]
+            }
+        ];
+
+        // Input handling
+        let keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        function startMoving(direction) {
+            gameState.isMoving = true;
+            gameState.moveDirection = direction;
+        }
+
+        function stopMoving() {
+            gameState.isMoving = false;
+            gameState.moveDirection = null;
+        }
+
+        function startSteering(direction) {
+            gameState.isSteering = true;
+            gameState.steeringDirection = direction;
+        }
+
+        function stopSteering() {
+            gameState.isSteering = false;
+            gameState.steeringDirection = null;
+        }
+
+        // Car physics
+        function updateCar() {
+            // Handle movement
+            if (gameState.isMoving) {
+                if (gameState.moveDirection === 'forward') {
+                    car.speed = Math.min(car.speed + car.acceleration, car.maxSpeed);
+                } else if (gameState.moveDirection === 'reverse') {
+                    car.speed = Math.max(car.speed - car.acceleration, -car.maxSpeed);
+                }
+            } else {
+                // Apply friction
+                car.speed *= (1 - car.friction);
+                if (Math.abs(car.speed) < 0.01) car.speed = 0;
+            }
+
+            // Handle steering
+            if (gameState.isSteering && Math.abs(car.speed) > 0.1) {
+                const steeringForce = 0.03;
+                if (gameState.steeringDirection === 'left') {
+                    car.angle -= steeringForce * (car.speed / car.maxSpeed);
+                } else if (gameState.steeringDirection === 'right') {
+                    car.angle += steeringForce * (car.speed / car.maxSpeed);
+                }
+            }
+
+            // Update position
+            car.x += Math.cos(car.angle) * car.speed;
+            car.y += Math.sin(car.angle) * car.speed;
+
+            // Boundary checking
+            car.x = Math.max(20, Math.min(canvas.width - car.width - 20, car.x));
+            car.y = Math.max(20, Math.min(canvas.height - car.height - 20, car.y));
+
+        // Handle keyboard input
+        if (keys['ArrowUp'] || keys['KeyW']) startMoving('forward');
+        if (keys['ArrowDown'] || keys['KeyS']) startMoving('reverse');
+        if (keys['ArrowLeft'] || keys['KeyA']) startSteering('left');
+        if (keys['ArrowRight'] || keys['KeyD']) startSteering('right');
+
+        if (!keys['ArrowUp'] && !keys['KeyW'] && !keys['ArrowDown'] && !keys['KeyS']) stopMoving();
+        if (!keys['ArrowLeft'] && !keys['KeyA'] && !keys['ArrowRight'] && !keys['KeyD']) stopSteering();
+        }
+
+        // Get current level configuration
+        function getCurrentLevelConfig() {
+            return levelConfigs[gameState.currentLevel - 1];
+        }
+
+        // Calculate parking accuracy
+        function calculateAccuracy() {
+            const levelConfig = getCurrentLevelConfig();
+            const targetSpace = levelConfig.parkingSpaces[0];
+            
+            // Check if car is in the parking space
+            const carCenterX = car.x + car.width / 2;
+            const carCenterY = car.y + car.height / 2;
+            
+            const spaceCenterX = targetSpace.x + targetSpace.width / 2;
+            const spaceCenterY = targetSpace.y + targetSpace.height / 2;
+            
+            // Distance from center of parking space
+            const distanceFromCenter = Math.sqrt(
+                Math.pow(carCenterX - spaceCenterX, 2) + 
+                Math.pow(carCenterY - spaceCenterY, 2)
+            );
+            
+            // Angle alignment (how straight the car is)
+            const angleDifference = Math.abs(car.angle - targetSpace.angle);
+            const normalizedAngleDiff = Math.min(angleDifference, Math.PI - angleDifference) / Math.PI;
+            
+            // Maximum distance for 100% accuracy
+            const maxDistance = Math.sqrt(
+                Math.pow(targetSpace.width / 2, 2) + 
+                Math.pow(targetSpace.height / 2, 2)
+            );
+            
+            // Calculate position accuracy (0-70% of total score)
+            const positionAccuracy = Math.max(0, 1 - (distanceFromCenter / maxDistance)) * 70;
+            
+            // Calculate angle accuracy (0-30% of total score)
+            const angleAccuracy = (1 - normalizedAngleDiff) * 30;
+            
+            // Check if car is within parking space bounds
+            const withinBounds = carCenterX >= targetSpace.x && 
+                               carCenterX <= targetSpace.x + targetSpace.width &&
+                               carCenterY >= targetSpace.y && 
+                               carCenterY <= targetSpace.y + targetSpace.height;
+            
+            if (withinBounds) {
+                return Math.round(positionAccuracy + angleAccuracy);
+            }
+            
+            return 0;
+        }
+
+        // Check parking status
+        function checkParking() {
+            const accuracy = calculateAccuracy();
+            gameState.accuracy = accuracy;
+            
+            // Update score display
+            document.getElementById('accuracyScore').textContent = `${accuracy}%`;
+            document.getElementById('levelDisplay').textContent = gameState.currentLevel;
+            
+            // Check if car is stopped (speed close to zero)
+            const isStopped = Math.abs(car.speed) < 0.1;
+            
+            if (accuracy > 80 && !gameState.isParked && isStopped) {
+                gameState.isParked = true;
+                
+                // Calculate coins earned based on accuracy
+                let coinsEarned = Math.floor(accuracy / 10) * gameState.currentLevel;
+                if (accuracy >= 95) coinsEarned += 5; // Bonus for perfect parking
+                gameState.coinsEarned = coinsEarned;
+                
+                document.getElementById('statusText').textContent = `Excellent! ${accuracy}% - +${coinsEarned} coins!`;
+                document.getElementById('statusText').style.color = '#4CAF50';
+                
+                // Award coins and unlock next level
+                playerData.coins += coinsEarned;
+                
+                // Mark current level as completed
+                if (!playerData.completedLevels.includes(gameState.currentLevel)) {
+                    playerData.completedLevels.push(gameState.currentLevel);
+                }
+                
+                // Unlock next level if it exists
+                if (gameState.currentLevel < 5 && !playerData.completedLevels.includes(gameState.currentLevel + 1)) {
+                    playerData.completedLevels.push(gameState.currentLevel + 1);
+                }
+                
+                console.log('Level completed! New completed levels:', playerData.completedLevels);
+                savePlayerData();
+                
+                setTimeout(() => {
+                    showCompletionScreen();
+                }, 1000);
+            } else if (accuracy > 80 && !gameState.isParked && !isStopped) {
+                document.getElementById('statusText').textContent = `Great parking! ${accuracy}% - Stop the car to finish!`;
+                document.getElementById('statusText').style.color = '#FF9800';
+            } else if (accuracy > 50 && !gameState.isParked) {
+                document.getElementById('statusText').textContent = `Good! ${accuracy}%`;
+                document.getElementById('statusText').style.color = '#FF9800';
+            } else if (accuracy > 20) {
+                document.getElementById('statusText').textContent = `${accuracy}% - Keep trying!`;
+                document.getElementById('statusText').style.color = '#FF5722';
+            } else {
+                document.getElementById('statusText').textContent = 'Park in the highlighted space!';
+                document.getElementById('statusText').style.color = '#ecf0f1';
+            }
+        }
+
+        // Drawing functions
+        function drawCar() {
+            ctx.save();
+            ctx.translate(car.x + car.width / 2, car.y + car.height / 2);
+            ctx.rotate(car.angle);
+            
+            // Disable anti-aliasing for pixelated look
+            ctx.imageSmoothingEnabled = false;
+            
+            // Car shadow (pixelated)
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(-car.width / 2 + 3, -car.height / 2 + 3, car.width, car.height);
+            
+            // Car body (main - based on purchased color)
+            let carColors = {
+                red: { body: '#ff4444', roof: '#cc2222' },
+                blue: { body: '#4444ff', roof: '#2222cc' },
+                green: { body: '#44ff44', roof: '#22cc22' },
+                purple: { body: '#ff44ff', roof: '#cc22cc' },
+                yellow: { body: '#ffff44', roof: '#cccc22' },
+                black: { body: '#333333', roof: '#111111' },
+                rainbow: { body: getRainbowColor(), roof: getRainbowColor() }
+            };
+            let colors = carColors[playerData.currentCarColor] || carColors.red;
+            
+            ctx.fillStyle = colors.body;
+            ctx.fillRect(-car.width / 2, -car.height / 2, car.width, car.height);
+            
+            // Car roof (darker shade, blocky)
+            ctx.fillStyle = colors.roof;
+            ctx.fillRect(-car.width / 2 + 4, -car.height / 2 + 3, car.width - 8, 8);
+            
+            // Windshield (bright blue, pixelated)
+            ctx.fillStyle = '#44aaff';
+            ctx.fillRect(-car.width / 2 + 6, -car.height / 2 + 5, car.width - 12, 6);
+            
+            // Headlights (bright yellow, square)
+            ctx.fillStyle = '#ffff44';
+            ctx.fillRect(-car.width / 2 - 2, -car.height / 2 + 6, 4, 4);
+            ctx.fillRect(car.width / 2 - 2, -car.height / 2 + 6, 4, 4);
+            
+            // Taillights (orange, square)
+            ctx.fillStyle = '#ff8844';
+            ctx.fillRect(-car.width / 2 - 2, car.height / 2 - 10, 4, 4);
+            ctx.fillRect(car.width / 2 - 2, car.height / 2 - 10, 4, 4);
+            
+            // Wheels (square, pixelated)
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(-car.width / 2 - 2, -car.height / 2 + 4, 6, 6);
+            ctx.fillRect(-car.width / 2 - 2, car.height / 2 - 10, 6, 6);
+            ctx.fillRect(car.width / 2 - 4, -car.height / 2 + 4, 6, 6);
+            ctx.fillRect(car.width / 2 - 4, car.height / 2 - 10, 6, 6);
+            
+            // Wheel centers (white squares)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-car.width / 2 - 1, -car.height / 2 + 5, 4, 4);
+            ctx.fillRect(-car.width / 2 - 1, car.height / 2 - 9, 4, 4);
+            ctx.fillRect(car.width / 2 - 3, -car.height / 2 + 5, 4, 4);
+            ctx.fillRect(car.width / 2 - 3, car.height / 2 - 9, 4, 4);
+            
+            // Car outline (black pixels)
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(-car.width / 2, -car.height / 2, car.width, car.height);
+            
+            // Car trail effect
+            if (playerData.purchasedItems.includes('carTrail') && Math.abs(car.speed) > 0.5) {
+                drawCarTrail();
+            }
+            
+            // Sparkle effect
+            if (playerData.purchasedItems.includes('sparkles')) {
+                drawSparkles();
+            }
+            
+            // Restore anti-aliasing
+            ctx.imageSmoothingEnabled = true;
+            
+            ctx.restore();
+        }
+
+        function getRainbowColor() {
+            const hue = (Date.now() / 100) % 360;
+            return `hsl(${hue}, 70%, 50%)`;
+        }
+
+        function drawCarTrail() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(-car.width / 2 - 5, -car.height / 2 + 2, 8, car.height - 4);
+            ctx.fillRect(-car.width / 2 - 10, -car.height / 2 + 4, 6, car.height - 8);
+            ctx.fillRect(-car.width / 2 - 15, -car.height / 2 + 6, 4, car.height - 12);
+        }
+
+        function drawSparkles() {
+            if (Math.random() < 0.3) {
+                const sparkleX = (Math.random() - 0.5) * car.width;
+                const sparkleY = (Math.random() - 0.5) * car.height;
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(sparkleX, sparkleY, 2, 2);
+            }
+        }
+
+        function drawParkingLot() {
+            const levelConfig = getCurrentLevelConfig();
+            
+            // Draw themed background
+            drawThemedBackground(levelConfig.theme);
+            
+            // Draw obstacles
+            levelConfig.obstacles.forEach(obstacle => {
+                drawObstacle(obstacle);
+            });
+            
+            // Draw decorations
+            levelConfig.decorations.forEach(decoration => {
+                drawDecoration(decoration);
+            });
+            
+            // Draw parking spaces
+            levelConfig.parkingSpaces.forEach((space, index) => {
+                drawEnhancedParkingSpace(space, index);
+            });
+        }
+
+        function drawThemedBackground(theme) {
+            // Check for night mode
+            const isNightMode = playerData.purchasedItems.includes('nightMode');
+            
+            switch(theme) {
+                case 'basic':
+                    drawBasicBackground(isNightMode);
+                    break;
+                case 'bakery':
+                    drawBakeryBackground(isNightMode);
+                    break;
+                case 'office':
+                    drawOfficeBackground(isNightMode);
+                    break;
+                case 'mall':
+                    drawMallBackground(isNightMode);
+                    break;
+                case 'hospital':
+                    drawHospitalBackground(isNightMode);
+                    break;
+            }
+            
+            // Draw night mode effects
+            if (isNightMode) {
+                drawNightEffects();
+            }
+        }
+
+        function drawBasicBackground(isNightMode = false) {
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            const baseColor1 = isNightMode ? '#0f0f0f' : '#4a5568';
+            const baseColor2 = isNightMode ? '#1a1a1a' : '#2d3748';
+            gradient.addColorStop(0, baseColor1);
+            gradient.addColorStop(1, baseColor2);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add realistic asphalt texture with patterns
+            drawAsphaltTexture(isNightMode);
+            
+            // Enhanced concrete parking areas with shadows
+            const concreteGradient = ctx.createLinearGradient(0, 0, 0, 80);
+            const concreteColor1 = isNightMode ? '#4a4a4a' : '#e2e8f0';
+            const concreteColor2 = isNightMode ? '#3a3a3a' : '#cbd5e0';
+            concreteGradient.addColorStop(0, concreteColor1);
+            concreteGradient.addColorStop(1, concreteColor2);
+            ctx.fillStyle = concreteGradient;
+            ctx.fillRect(0, 0, canvas.width, 80);
+            ctx.fillRect(0, 520, canvas.width, 80);
+            
+            // Add concrete texture
+            drawConcreteTexture(0, 0, canvas.width, 80, isNightMode);
+            drawConcreteTexture(0, 520, canvas.width, 80, isNightMode);
+            
+            // Enhanced main driving area with gradient
+            const roadGradient = ctx.createLinearGradient(0, 80, 0, 520);
+            const roadColor1 = isNightMode ? '#2a2a2a' : '#718096';
+            const roadColor2 = isNightMode ? '#1f1f1f' : '#4a5568';
+            roadGradient.addColorStop(0, roadColor1);
+            roadGradient.addColorStop(0.5, roadColor2);
+            roadGradient.addColorStop(1, roadColor1);
+            ctx.fillStyle = roadGradient;
+            ctx.fillRect(0, 80, canvas.width, 440);
+            
+            // Add road wear patterns
+            drawRoadWearPatterns(isNightMode);
+            
+            // Enhanced road markings
+            drawRoadMarkings(isNightMode);
+            
+            // Add street lights for night mode
+            if (isNightMode) {
+                drawStreetLights();
+            }
+            
+            // Add grass areas on sides
+            drawGrassAreas(isNightMode);
+        }
+
+        function drawBakeryBackground(isNightMode = false) {
+            // Warm gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            const baseColor1 = isNightMode ? '#2D1B0E' : '#A0522D';
+            const baseColor2 = isNightMode ? '#3D2B1E' : '#8B4513';
+            gradient.addColorStop(0, baseColor1);
+            gradient.addColorStop(1, baseColor2);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add warm brick texture
+            drawBrickTexture(isNightMode);
+            
+            // Cobblestone parking areas with enhanced texture
+            const cobbleGradient = ctx.createLinearGradient(0, 0, 0, 80);
+            const cobbleColor1 = isNightMode ? '#6B3A1E' : '#CD853F';
+            const cobbleColor2 = isNightMode ? '#5A2F1A' : '#A0522D';
+            cobbleGradient.addColorStop(0, cobbleColor1);
+            cobbleGradient.addColorStop(1, cobbleColor2);
+            ctx.fillStyle = cobbleGradient;
+            ctx.fillRect(0, 0, canvas.width, 80);
+            ctx.fillRect(0, 520, canvas.width, 80);
+            
+            // Add cobblestone pattern
+            drawCobblestoneTexture(0, 0, canvas.width, 80, isNightMode);
+            drawCobblestoneTexture(0, 520, canvas.width, 80, isNightMode);
+            
+            // Enhanced main driving area
+            const roadGradient = ctx.createLinearGradient(0, 80, 0, 520);
+            const roadColor1 = isNightMode ? '#6B3A1E' : '#D2691E';
+            const roadColor2 = isNightMode ? '#5A2F1A' : '#CD853F';
+            roadGradient.addColorStop(0, roadColor1);
+            roadGradient.addColorStop(0.5, roadColor2);
+            roadGradient.addColorStop(1, roadColor1);
+            ctx.fillStyle = roadGradient;
+            ctx.fillRect(0, 80, canvas.width, 440);
+            
+            // Add warm road wear patterns
+            drawWarmRoadWearPatterns(isNightMode);
+            
+            // Enhanced road markings
+            drawRoadMarkings(isNightMode);
+            
+            // Add street lights for night mode
+            if (isNightMode) {
+                drawStreetLights();
+            }
+            
+            // Add warm grass areas
+            drawWarmGrassAreas(isNightMode);
+        }
+
+        function drawOfficeBackground(isNightMode = false) {
+            // Corporate gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            const baseColor1 = isNightMode ? '#1A2A2A' : '#2F4F4F';
+            const baseColor2 = isNightMode ? '#2A3A3A' : '#1C2F2F';
+            gradient.addColorStop(0, baseColor1);
+            gradient.addColorStop(1, baseColor2);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add professional concrete texture
+            drawConcreteTexture(0, 0, canvas.width, canvas.height, isNightMode);
+            
+            // Enhanced professional parking areas
+            const parkingGradient = ctx.createLinearGradient(0, 0, 0, 80);
+            const parkingColor1 = isNightMode ? '#606060' : '#708090';
+            const parkingColor2 = isNightMode ? '#505050' : '#5F6F6F';
+            parkingGradient.addColorStop(0, parkingColor1);
+            parkingGradient.addColorStop(1, parkingColor2);
+            ctx.fillStyle = parkingGradient;
+            ctx.fillRect(0, 0, canvas.width, 80);
+            ctx.fillRect(0, 520, canvas.width, 80);
+            
+            // Add professional concrete texture to parking areas
+            drawConcreteTexture(0, 0, canvas.width, 80, isNightMode);
+            drawConcreteTexture(0, 520, canvas.width, 80, isNightMode);
+            
+            // Enhanced main driving area
+            const roadGradient = ctx.createLinearGradient(0, 80, 0, 520);
+            const roadColor1 = isNightMode ? '#404040' : '#778899';
+            const roadColor2 = isNightMode ? '#353535' : '#6B7B7B';
+            roadGradient.addColorStop(0, roadColor1);
+            roadGradient.addColorStop(0.5, roadColor2);
+            roadGradient.addColorStop(1, roadColor1);
+            ctx.fillStyle = roadGradient;
+            ctx.fillRect(0, 80, canvas.width, 440);
+            
+            // Add professional road wear patterns
+            drawProfessionalRoadWearPatterns(isNightMode);
+            
+            // Enhanced road markings
+            drawRoadMarkings(isNightMode);
+            
+            // Add street lights for night mode
+            if (isNightMode) {
+                drawStreetLights();
+            }
+            
+            // Add professional grass areas
+            drawProfessionalGrassAreas(isNightMode);
+        }
+
+        function drawMallBackground(isNightMode = false) {
+            // Modern gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            const baseColor1 = isNightMode ? '#1A1F2A' : '#36454F';
+            const baseColor2 = isNightMode ? '#2A2F3A' : '#2A3A4F';
+            gradient.addColorStop(0, baseColor1);
+            gradient.addColorStop(1, baseColor2);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add modern texture
+            drawModernTexture(isNightMode);
+            
+            // Enhanced mall parking areas
+            const parkingGradient = ctx.createLinearGradient(0, 0, 0, 80);
+            const parkingColor1 = isNightMode ? '#707070' : '#E0E0E0';
+            const parkingColor2 = isNightMode ? '#606060' : '#C0C0C0';
+            parkingGradient.addColorStop(0, parkingColor1);
+            parkingGradient.addColorStop(1, parkingColor2);
+            ctx.fillStyle = parkingGradient;
+            ctx.fillRect(0, 0, canvas.width, 80);
+            ctx.fillRect(0, 520, canvas.width, 80);
+            
+            // Add modern texture to parking areas
+            drawModernTexture(isNightMode, 0, 0, canvas.width, 80);
+            drawModernTexture(isNightMode, 0, 520, canvas.width, 80);
+            
+            // Enhanced main driving area
+            const roadGradient = ctx.createLinearGradient(0, 80, 0, 520);
+            const roadColor1 = isNightMode ? '#404040' : '#808080';
+            const roadColor2 = isNightMode ? '#353535' : '#6B6B6B';
+            roadGradient.addColorStop(0, roadColor1);
+            roadGradient.addColorStop(0.5, roadColor2);
+            roadGradient.addColorStop(1, roadColor1);
+            ctx.fillStyle = roadGradient;
+            ctx.fillRect(0, 80, canvas.width, 440);
+            
+            // Add modern road wear patterns
+            drawModernRoadWearPatterns(isNightMode);
+            
+            // Enhanced road markings
+            drawRoadMarkings(isNightMode);
+            
+            // Add street lights for night mode
+            if (isNightMode) {
+                drawStreetLights();
+            }
+            
+            // Add modern grass areas
+            drawModernGrassAreas(isNightMode);
+        }
+
+        function drawHospitalBackground(isNightMode = false) {
+            // Clean medical gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            const baseColor1 = isNightMode ? '#2A2A2A' : '#F5F5F5';
+            const baseColor2 = isNightMode ? '#3A3A3A' : '#E5E5E5';
+            gradient.addColorStop(0, baseColor1);
+            gradient.addColorStop(1, baseColor2);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add medical facility texture
+            drawMedicalTexture(isNightMode);
+            
+            // Enhanced emergency parking areas
+            const parkingGradient = ctx.createLinearGradient(0, 0, 0, 80);
+            const parkingColor1 = isNightMode ? '#7B3A3A' : '#FFB6C1';
+            const parkingColor2 = isNightMode ? '#6B2A2A' : '#FFA0B4';
+            parkingGradient.addColorStop(0, parkingColor1);
+            parkingGradient.addColorStop(1, parkingColor2);
+            ctx.fillStyle = parkingGradient;
+            ctx.fillRect(0, 0, canvas.width, 80);
+            ctx.fillRect(0, 520, canvas.width, 80);
+            
+            // Add medical texture to parking areas
+            drawMedicalTexture(isNightMode, 0, 0, canvas.width, 80);
+            drawMedicalTexture(isNightMode, 0, 520, canvas.width, 80);
+            
+            // Enhanced main driving area
+            const roadGradient = ctx.createLinearGradient(0, 80, 0, 520);
+            const roadColor1 = isNightMode ? '#404040' : '#F0F8FF';
+            const roadColor2 = isNightMode ? '#353535' : '#E0F0FF';
+            roadGradient.addColorStop(0, roadColor1);
+            roadGradient.addColorStop(0.5, roadColor2);
+            roadGradient.addColorStop(1, roadColor1);
+            ctx.fillStyle = roadGradient;
+            ctx.fillRect(0, 80, canvas.width, 440);
+            
+            // Add medical road wear patterns
+            drawMedicalRoadWearPatterns(isNightMode);
+            
+            // Enhanced emergency road markings
+            drawEmergencyRoadMarkings(isNightMode);
+            
+            // Add street lights for night mode
+            if (isNightMode) {
+                drawStreetLights();
+            }
+            
+            // Add medical grass areas
+            drawMedicalGrassAreas(isNightMode);
+        }
+
+        function drawModernTexture(isNightMode = false, x = 0, y = 0, width = null, height = null) {
+            const w = width || canvas.width;
+            const h = height || canvas.height;
+            const textureColor = isNightMode ? '#2A2A2A' : '#4F4F4F';
+            ctx.fillStyle = textureColor;
+            
+            // Create modern geometric pattern
+            for (let i = x; i < x + w; i += 12) {
+                for (let j = y; j < y + h; j += 12) {
+                    if (Math.random() > 0.7) {
+                        const size = Math.random() * 4 + 2;
+                        ctx.fillRect(i + Math.random() * 6, j + Math.random() * 6, size, size);
+                    }
+                }
+            }
+        }
+
+        function drawMedicalTexture(isNightMode = false, x = 0, y = 0, width = null, height = null) {
+            const w = width || canvas.width;
+            const h = height || canvas.height;
+            const textureColor = isNightMode ? '#404040' : '#E0E0E0';
+            ctx.fillStyle = textureColor;
+            
+            // Create clean medical pattern
+            for (let i = x; i < x + w; i += 16) {
+                for (let j = y; j < y + h; j += 16) {
+                    if (Math.random() > 0.8) {
+                        const size = Math.random() * 3 + 1;
+                        ctx.fillRect(i + Math.random() * 8, j + Math.random() * 8, size, size);
+                    }
+                }
+            }
+        }
+
+        function drawProfessionalRoadWearPatterns(isNightMode = false) {
+            const wearColor = isNightMode ? '#404040' : '#6B7B7B';
+            ctx.strokeStyle = wearColor;
+            ctx.lineWidth = 2;
+            
+            // Clean professional tire tracks
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                const y = 150 + i * 120;
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y + Math.sin(Date.now() / 1500) * 5);
+                ctx.stroke();
+            }
+        }
+
+        function drawModernRoadWearPatterns(isNightMode = false) {
+            const wearColor = isNightMode ? '#404040' : '#6B6B6B';
+            ctx.strokeStyle = wearColor;
+            ctx.lineWidth = 2;
+            
+            // Modern tire tracks
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                const y = 150 + i * 120;
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y + Math.sin(Date.now() / 1200) * 6);
+                ctx.stroke();
+            }
+            
+            // Modern wear spots
+            ctx.fillStyle = isNightMode ? '#353535' : '#5B5B5B';
+            for (let i = 0; i < 6; i++) {
+                const spotX = Math.random() * canvas.width;
+                const spotY = 80 + Math.random() * 440;
+                const spotSize = Math.random() * 12 + 3;
+                ctx.beginPath();
+                ctx.arc(spotX, spotY, spotSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawMedicalRoadWearPatterns(isNightMode = false) {
+            const wearColor = isNightMode ? '#404040' : '#C0D0E0';
+            ctx.strokeStyle = wearColor;
+            ctx.lineWidth = 2;
+            
+            // Clean medical tire tracks
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                const y = 150 + i * 120;
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y + Math.sin(Date.now() / 1800) * 4);
+                ctx.stroke();
+            }
+        }
+
+        function drawProfessionalGrassAreas(isNightMode = false) {
+            // Professional grass areas
+            const grassGradient = ctx.createLinearGradient(0, 0, 20, 0);
+            const grassColor1 = isNightMode ? '#2A3A2A' : '#90EE90';
+            const grassColor2 = isNightMode ? '#1F2A1F' : '#98FB98';
+            grassGradient.addColorStop(0, grassColor1);
+            grassGradient.addColorStop(1, grassColor2);
+            ctx.fillStyle = grassGradient;
+            ctx.fillRect(0, 0, 20, canvas.height);
+            ctx.fillRect(canvas.width - 20, 0, 20, canvas.height);
+            
+            // Add professional grass texture
+            ctx.fillStyle = isNightMode ? '#4A5A4A' : '#B0FFB0';
+            for (let i = 0; i < 40; i++) {
+                const x = Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+            
+            // Right grass area
+            for (let i = 0; i < 40; i++) {
+                const x = canvas.width - 20 + Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+        }
+
+        function drawModernGrassAreas(isNightMode = false) {
+            // Modern grass areas
+            const grassGradient = ctx.createLinearGradient(0, 0, 20, 0);
+            const grassColor1 = isNightMode ? '#2A3A2A' : '#87CEEB';
+            const grassColor2 = isNightMode ? '#1F2A1F' : '#98FB98';
+            grassGradient.addColorStop(0, grassColor1);
+            grassGradient.addColorStop(1, grassColor2);
+            ctx.fillStyle = grassGradient;
+            ctx.fillRect(0, 0, 20, canvas.height);
+            ctx.fillRect(canvas.width - 20, 0, 20, canvas.height);
+            
+            // Add modern grass texture
+            ctx.fillStyle = isNightMode ? '#4A5A4A' : '#B0E0E6';
+            for (let i = 0; i < 45; i++) {
+                const x = Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+            
+            // Right grass area
+            for (let i = 0; i < 45; i++) {
+                const x = canvas.width - 20 + Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+        }
+
+        function drawMedicalGrassAreas(isNightMode = false) {
+            // Medical grass areas
+            const grassGradient = ctx.createLinearGradient(0, 0, 20, 0);
+            const grassColor1 = isNightMode ? '#2A4A2A' : '#F0FFF0';
+            const grassColor2 = isNightMode ? '#1F3A1F' : '#E0FFE0';
+            grassGradient.addColorStop(0, grassColor1);
+            grassGradient.addColorStop(1, grassColor2);
+            ctx.fillStyle = grassGradient;
+            ctx.fillRect(0, 0, 20, canvas.height);
+            ctx.fillRect(canvas.width - 20, 0, 20, canvas.height);
+            
+            // Add medical grass texture
+            ctx.fillStyle = isNightMode ? '#4A6A4A' : '#F0FFE0';
+            for (let i = 0; i < 35; i++) {
+                const x = Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+            
+            // Right grass area
+            for (let i = 0; i < 35; i++) {
+                const x = canvas.width - 20 + Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+        }
+
+        function drawEmergencyRoadMarkings(isNightMode = false) {
+            // Emergency road markings (red)
+            const markingColor = isNightMode ? '#FF6666' : '#FF0000';
+            ctx.strokeStyle = markingColor;
+            ctx.lineWidth = 4;
+            ctx.setLineDash([15, 10]);
+            
+            // Center line
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            // Side lines
+            ctx.beginPath();
+            ctx.moveTo(0, 80);
+            ctx.lineTo(canvas.width, 80);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 80);
+            ctx.lineTo(canvas.width, canvas.height - 80);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+        }
+
+        function drawRoadMarkings(isNightMode = false) {
+            // Road markings color
+            const markingColor = isNightMode ? '#FFD700' : '#f1c40f';
+            ctx.strokeStyle = markingColor;
+            ctx.lineWidth = 4;
+            ctx.setLineDash([15, 10]);
+            
+            // Center line
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            // Side lines
+            ctx.beginPath();
+            ctx.moveTo(0, 80);
+            ctx.lineTo(canvas.width, 80);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 80);
+            ctx.lineTo(canvas.width, canvas.height - 80);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+        }
+
+        function drawNightEffects() {
+            // Add dark overlay
+            ctx.fillStyle = 'rgba(0, 0, 50, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add stars
+            ctx.fillStyle = '#FFFFFF';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * (canvas.height / 2);
+                const size = Math.random() * 2 + 1;
+                ctx.fillRect(x, y, size, size);
+            }
+        }
+
+        function drawAsphaltTexture(isNightMode = false) {
+            const textureColor = isNightMode ? '#1a1a1a' : '#2d3748';
+            ctx.fillStyle = textureColor;
+            
+            // Create realistic asphalt pattern
+            for (let x = 0; x < canvas.width; x += 8) {
+                for (let y = 80; y < 520; y += 8) {
+                    if (Math.random() > 0.7) {
+                        const size = Math.random() * 3 + 1;
+                        ctx.fillRect(x + Math.random() * 4, y + Math.random() * 4, size, size);
+                    }
+                }
+            }
+            
+            // Add cracks and wear lines
+            ctx.strokeStyle = textureColor;
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 15; i++) {
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, 80 + Math.random() * 440);
+                ctx.lineTo(Math.random() * canvas.width, 80 + Math.random() * 440);
+                ctx.stroke();
+            }
+        }
+
+        function drawConcreteTexture(x, y, width, height, isNightMode = false) {
+            const textureColor = isNightMode ? '#5a5a5a' : '#a0aec0';
+            ctx.fillStyle = textureColor;
+            
+            // Create concrete slab pattern
+            for (let i = 0; i < width; i += 20) {
+                for (let j = 0; j < height; j += 20) {
+                    if (Math.random() > 0.8) {
+                        ctx.fillRect(x + i, y + j, Math.random() * 3 + 1, Math.random() * 3 + 1);
+                    }
+                }
+            }
+            
+            // Add concrete lines
+            ctx.strokeStyle = isNightMode ? '#6a6a6a' : '#cbd5e0';
+            ctx.lineWidth = 1;
+            for (let i = 20; i < width; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(x + i, y);
+                ctx.lineTo(x + i, y + height);
+                ctx.stroke();
+            }
+        }
+
+        function drawRoadWearPatterns(isNightMode = false) {
+            const wearColor = isNightMode ? '#2a2a2a' : '#4a5568';
+            ctx.strokeStyle = wearColor;
+            ctx.lineWidth = 2;
+            
+            // Tire tracks
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                const y = 150 + i * 120;
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y + Math.sin(Date.now() / 1000) * 10);
+                ctx.stroke();
+            }
+            
+            // Oil stains
+            ctx.fillStyle = isNightMode ? '#1a1a1a' : '#2d3748';
+            for (let i = 0; i < 8; i++) {
+                const stainX = Math.random() * canvas.width;
+                const stainY = 80 + Math.random() * 440;
+                const stainSize = Math.random() * 15 + 5;
+                ctx.beginPath();
+                ctx.arc(stainX, stainY, stainSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawGrassAreas(isNightMode = false) {
+            // Left grass area
+            const grassGradient = ctx.createLinearGradient(0, 0, 20, 0);
+            const grassColor1 = isNightMode ? '#1a3a1a' : '#48bb78';
+            const grassColor2 = isNightMode ? '#0f2f0f' : '#38a169';
+            grassGradient.addColorStop(0, grassColor1);
+            grassGradient.addColorStop(1, grassColor2);
+            ctx.fillStyle = grassGradient;
+            ctx.fillRect(0, 0, 20, canvas.height);
+            ctx.fillRect(canvas.width - 20, 0, 20, canvas.height);
+            
+            // Add grass texture
+            ctx.fillStyle = isNightMode ? '#2a4a2a' : '#68d391';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+            
+            // Right grass area
+            for (let i = 0; i < 50; i++) {
+                const x = canvas.width - 20 + Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+        }
+
+        function drawStreetLights() {
+            // Street light poles
+            const lightPositions = [
+                { x: 100, y: 50 },
+                { x: 300, y: 50 },
+                { x: 500, y: 50 },
+                { x: 700, y: 50 },
+                { x: 100, y: 550 },
+                { x: 300, y: 550 },
+                { x: 500, y: 550 },
+                { x: 700, y: 550 }
+            ];
+            
+            lightPositions.forEach(light => {
+                // Light pole shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(light.x + 2, light.y + 2, 8, 40);
+                
+                // Light pole
+                const poleGradient = ctx.createLinearGradient(light.x, light.y, light.x + 8, light.y);
+                poleGradient.addColorStop(0, '#666666');
+                poleGradient.addColorStop(1, '#333333');
+                ctx.fillStyle = poleGradient;
+                ctx.fillRect(light.x, light.y, 8, 40);
+                
+                // Light bulb
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(light.x + 4, light.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Light glow with multiple layers
+                const glowGradient = ctx.createRadialGradient(light.x + 4, light.y, 0, light.x + 4, light.y, 25);
+                glowGradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+                glowGradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.3)');
+                glowGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                ctx.fillStyle = glowGradient;
+                ctx.beginPath();
+                ctx.arc(light.x + 4, light.y, 25, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawBrickTexture(isNightMode = false) {
+            const brickColor = isNightMode ? '#6B4B2F' : '#CD853F';
+            ctx.fillStyle = brickColor;
+            
+            // Create brick pattern
+            for (let x = 0; x < canvas.width; x += 40) {
+                for (let y = 0; y < canvas.height; y += 20) {
+                    if (Math.random() > 0.8) {
+                        ctx.fillRect(x, y, 35, 15);
+                    }
+                }
+            }
+            
+            // Add mortar lines
+            ctx.strokeStyle = isNightMode ? '#8B5A2B' : '#DEB887';
+            ctx.lineWidth = 2;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawCobblestoneTexture(x, y, width, height, isNightMode = false) {
+            const stoneColor = isNightMode ? '#6B4B2F' : '#CD853F';
+            ctx.fillStyle = stoneColor;
+            
+            // Create irregular cobblestone pattern
+            for (let i = 0; i < width; i += 15) {
+                for (let j = 0; j < height; j += 15) {
+                    if (Math.random() > 0.6) {
+                        const size = Math.random() * 8 + 6;
+                        ctx.fillRect(x + i + Math.random() * 5, y + j + Math.random() * 5, size, size);
+                    }
+                }
+            }
+        }
+
+        function drawWarmRoadWearPatterns(isNightMode = false) {
+            const wearColor = isNightMode ? '#6B3A1E' : '#A0522D';
+            ctx.strokeStyle = wearColor;
+            ctx.lineWidth = 2;
+            
+            // Tire tracks with warm tones
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                const y = 150 + i * 120;
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y + Math.sin(Date.now() / 1000) * 8);
+                ctx.stroke();
+            }
+        }
+
+        function drawWarmGrassAreas(isNightMode = false) {
+            // Warm grass areas
+            const grassGradient = ctx.createLinearGradient(0, 0, 20, 0);
+            const grassColor1 = isNightMode ? '#2D3A1A' : '#8FBC8F';
+            const grassColor2 = isNightMode ? '#1F2A0F' : '#9ACD32';
+            grassGradient.addColorStop(0, grassColor1);
+            grassGradient.addColorStop(1, grassColor2);
+            ctx.fillStyle = grassGradient;
+            ctx.fillRect(0, 0, 20, canvas.height);
+            ctx.fillRect(canvas.width - 20, 0, 20, canvas.height);
+            
+            // Add warm grass texture
+            ctx.fillStyle = isNightMode ? '#4A5A2A' : '#ADFF2F';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+            
+            // Right grass area
+            for (let i = 0; i < 50; i++) {
+                const x = canvas.width - 20 + Math.random() * 20;
+                const y = Math.random() * canvas.height;
+                ctx.fillRect(x, y, 2, 4);
+            }
+        }
+
+        function drawObstacle(obstacle) {
+            // Add shadow for all obstacles
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(obstacle.x + 3, obstacle.y + 3, obstacle.width, obstacle.height);
+            
+            switch(obstacle.type) {
+                case 'delivery_truck':
+                    drawDeliveryTruck(obstacle);
+                    break;
+                case 'cart':
+                    drawShoppingCart(obstacle);
+                    break;
+                case 'construction_barrier':
+                    drawConstructionBarrier(obstacle);
+                    break;
+                case 'cone':
+                    drawTrafficCone(obstacle);
+                    break;
+                case 'shopping_cart':
+                    drawShoppingCart(obstacle);
+                    break;
+                case 'ambulance':
+                    drawAmbulance(obstacle);
+                    break;
+                case 'emergency_cone':
+                    drawEmergencyCone(obstacle);
+                    break;
+                default:
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            }
+        }
+
+        function drawDeliveryTruck(obstacle) {
+            // Truck body with gradient
+            const truckGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y);
+            truckGradient.addColorStop(0, '#FF6347');
+            truckGradient.addColorStop(1, '#DC143C');
+            ctx.fillStyle = truckGradient;
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            
+            // Truck cab
+            ctx.fillStyle = '#2F4F4F';
+            ctx.fillRect(obstacle.x + 10, obstacle.y + 5, 25, obstacle.height - 10);
+            
+            // Windows
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(obstacle.x + 12, obstacle.y + 8, 21, 8);
+            
+            // Wheels
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(obstacle.x + 5, obstacle.y + obstacle.height - 5, 8, 8);
+            ctx.fillRect(obstacle.x + obstacle.width - 13, obstacle.y + obstacle.height - 5, 8, 8);
+            
+            // Wheel centers
+            ctx.fillStyle = '#666666';
+            ctx.fillRect(obstacle.x + 7, obstacle.y + obstacle.height - 3, 4, 4);
+            ctx.fillRect(obstacle.x + obstacle.width - 11, obstacle.y + obstacle.height - 3, 4, 4);
+        }
+
+        function drawShoppingCart(obstacle) {
+            // Cart body with gradient
+            const cartGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y);
+            cartGradient.addColorStop(0, '#E6E6FA');
+            cartGradient.addColorStop(1, '#C0C0C0');
+            ctx.fillStyle = cartGradient;
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            
+            // Cart handle
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(obstacle.x + obstacle.width/2, obstacle.y - 10, 5, 15);
+            
+            // Cart wheels
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(obstacle.x + 8, obstacle.y + obstacle.height - 5, 8, 8);
+            ctx.fillRect(obstacle.x + obstacle.width - 16, obstacle.y + obstacle.height - 5, 8, 8);
+            
+            // Wheel centers
+            ctx.fillStyle = '#999999';
+            ctx.fillRect(obstacle.x + 10, obstacle.y + obstacle.height - 3, 4, 4);
+            ctx.fillRect(obstacle.x + obstacle.width - 14, obstacle.y + obstacle.height - 3, 4, 4);
+            
+            // Cart details
+            ctx.strokeStyle = '#808080';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        }
+
+        function drawConstructionBarrier(obstacle) {
+            // Barrier body with gradient
+            const barrierGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x, obstacle.y + obstacle.height);
+            barrierGradient.addColorStop(0, '#FFD700');
+            barrierGradient.addColorStop(1, '#DAA520');
+            ctx.fillStyle = barrierGradient;
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            
+            // Warning stripes
+            ctx.fillStyle = '#FF0000';
+            for (let i = 0; i < obstacle.width; i += 20) {
+                ctx.fillRect(obstacle.x + i, obstacle.y, 10, obstacle.height);
+            }
+            
+            // Reflective strips
+            ctx.fillStyle = '#FFFFFF';
+            for (let i = 10; i < obstacle.width; i += 20) {
+                ctx.fillRect(obstacle.x + i, obstacle.y + 2, 5, obstacle.height - 4);
+            }
+        }
+
+        function drawTrafficCone(obstacle) {
+            // Cone body with gradient
+            const coneGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height);
+            coneGradient.addColorStop(0, '#FF4500');
+            coneGradient.addColorStop(1, '#FF6347');
+            ctx.fillStyle = coneGradient;
+            ctx.beginPath();
+            ctx.moveTo(obstacle.x + obstacle.width/2, obstacle.y);
+            ctx.lineTo(obstacle.x, obstacle.y + obstacle.height);
+            ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Reflective stripes
+            ctx.fillStyle = '#FFFFFF';
+            for (let i = 0; i < obstacle.height; i += 15) {
+                ctx.fillRect(obstacle.x + obstacle.width/4, obstacle.y + i, obstacle.width/2, 3);
+            }
+        }
+
+        function drawAmbulance(obstacle) {
+            // Ambulance body with gradient
+            const ambulanceGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y);
+            ambulanceGradient.addColorStop(0, '#F8F8FF');
+            ambulanceGradient.addColorStop(1, '#FFFFFF');
+            ctx.fillStyle = ambulanceGradient;
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            
+            // Red cross
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(obstacle.x + 15, obstacle.y + 8, 20, 25);
+            ctx.fillRect(obstacle.x + 20, obstacle.y + 3, 10, 35);
+            
+            // Windows
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(obstacle.x + 5, obstacle.y + 5, 15, 10);
+            
+            // Wheels
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(obstacle.x + 8, obstacle.y + obstacle.height - 5, 8, 8);
+            ctx.fillRect(obstacle.x + obstacle.width - 16, obstacle.y + obstacle.height - 5, 8, 8);
+            
+            // Sirens
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(obstacle.x + obstacle.width/2 - 2, obstacle.y - 5, 4, 8);
+        }
+
+        function drawEmergencyCone(obstacle) {
+            // Emergency cone with enhanced design
+            const coneGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height);
+            coneGradient.addColorStop(0, '#FF0000');
+            coneGradient.addColorStop(1, '#DC143C');
+            ctx.fillStyle = coneGradient;
+            ctx.beginPath();
+            ctx.moveTo(obstacle.x + obstacle.width/2, obstacle.y);
+            ctx.lineTo(obstacle.x, obstacle.y + obstacle.height);
+            ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Emergency reflective stripes
+            ctx.fillStyle = '#FFFFFF';
+            for (let i = 0; i < obstacle.height; i += 12) {
+                ctx.fillRect(obstacle.x + obstacle.width/3, obstacle.y + i, obstacle.width/3, 4);
+            }
+            
+            // Base
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(obstacle.x - 2, obstacle.y + obstacle.height - 2, obstacle.width + 4, 4);
+        }
+
+        function drawDecoration(decoration) {
+            switch(decoration.type) {
+                case 'bakery_sign':
+                    drawBakerySign(decoration);
+                    break;
+                case 'crowd':
+                    drawCrowd(decoration);
+                    break;
+                case 'office_building':
+                    drawOfficeBuilding(decoration);
+                    break;
+                case 'mall_sign':
+                    drawMallSign(decoration);
+                    break;
+                case 'hospital_sign':
+                    drawHospitalSign(decoration);
+                    break;
+            }
+        }
+
+        function drawBakerySign(decoration) {
+            // Sign shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(decoration.x + 2, decoration.y + 2, 50, 25);
+            
+            // Sign background with gradient
+            const signGradient = ctx.createLinearGradient(decoration.x, decoration.y, decoration.x, decoration.y + 25);
+            signGradient.addColorStop(0, '#DEB887');
+            signGradient.addColorStop(1, '#8B4513');
+            ctx.fillStyle = signGradient;
+            ctx.fillRect(decoration.x, decoration.y, 50, 25);
+            
+            // Sign border
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(decoration.x, decoration.y, 50, 25);
+            
+            // Text with shadow
+            ctx.fillStyle = '#654321';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('BAKERY', decoration.x + 6, decoration.y + 18);
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('BAKERY', decoration.x + 5, decoration.y + 17);
+            
+            // Decorative elements
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(decoration.x + 5, decoration.y + 5, 3, 3);
+            ctx.fillRect(decoration.x + 42, decoration.y + 5, 3, 3);
+            ctx.fillRect(decoration.x + 5, decoration.y + 17, 3, 3);
+            ctx.fillRect(decoration.x + 42, decoration.y + 17, 3, 3);
+        }
+
+        function drawCrowd(decoration) {
+            // Draw people with better detail
+            const people = [
+                { x: 0, y: 0, color: '#FFB6C1' },
+                { x: 8, y: 2, color: '#FFA07A' },
+                { x: 16, y: 0, color: '#DDA0DD' },
+                { x: 24, y: 3, color: '#F0E68C' },
+                { x: 32, y: 1, color: '#98FB98' }
+            ];
+            
+            people.forEach(person => {
+                // Person shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(decoration.x + person.x + 1, decoration.y + person.y + 1, 8, 15);
+                
+                // Person body
+                ctx.fillStyle = person.color;
+                ctx.fillRect(decoration.x + person.x, decoration.y + person.y, 8, 15);
+                
+                // Person head
+                ctx.fillStyle = '#FDBCB4';
+                ctx.fillRect(decoration.x + person.x + 2, decoration.y + person.y, 4, 5);
+                
+                // Person outline
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(decoration.x + person.x, decoration.y + person.y, 8, 15);
+            });
+        }
+
+        function drawOfficeBuilding(decoration) {
+            // Building shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(decoration.x + 3, decoration.y + 3, 70, 50);
+            
+            // Building body with gradient
+            const buildingGradient = ctx.createLinearGradient(decoration.x, decoration.y, decoration.x, decoration.y + 50);
+            buildingGradient.addColorStop(0, '#B0C4DE');
+            buildingGradient.addColorStop(1, '#708090');
+            ctx.fillStyle = buildingGradient;
+            ctx.fillRect(decoration.x, decoration.y, 70, 50);
+            
+            // Building outline
+            ctx.strokeStyle = '#2F4F4F';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(decoration.x, decoration.y, 70, 50);
+            
+            // Windows with gradients
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const windowX = decoration.x + 10 + i * 15;
+                    const windowY = decoration.y + 10 + j * 15;
+                    
+                    // Window frame
+                    ctx.fillStyle = '#2F4F4F';
+                    ctx.fillRect(windowX - 1, windowY - 1, 12, 12);
+                    
+                    // Window glass with gradient
+                    const windowGradient = ctx.createLinearGradient(windowX, windowY, windowX, windowY + 10);
+                    windowGradient.addColorStop(0, '#E6F3FF');
+                    windowGradient.addColorStop(1, '#87CEEB');
+                    ctx.fillStyle = windowGradient;
+                    ctx.fillRect(windowX, windowY, 10, 10);
+                    
+                    // Window reflection
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.fillRect(windowX, windowY, 10, 3);
+                }
+            }
+            
+            // Building top
+            ctx.fillStyle = '#2F4F4F';
+            ctx.fillRect(decoration.x, decoration.y, 70, 5);
+        }
+
+        function drawMallSign(decoration) {
+            // Sign shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(decoration.x + 2, decoration.y + 2, 60, 30);
+            
+            // Sign background with gradient
+            const signGradient = ctx.createLinearGradient(decoration.x, decoration.y, decoration.x, decoration.y + 30);
+            signGradient.addColorStop(0, '#FFB6C1');
+            signGradient.addColorStop(1, '#FF69B4');
+            ctx.fillStyle = signGradient;
+            ctx.fillRect(decoration.x, decoration.y, 60, 30);
+            
+            // Sign border
+            ctx.strokeStyle = '#C71585';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(decoration.x, decoration.y, 60, 30);
+            
+            // Text with shadow
+            ctx.fillStyle = '#C71585';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('MALL', decoration.x + 12, decoration.y + 22);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('MALL', decoration.x + 11, decoration.y + 21);
+            
+            // Decorative stars
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '12px Arial';
+            ctx.fillText('★', decoration.x + 5, decoration.y + 15);
+            ctx.fillText('★', decoration.x + 50, decoration.y + 15);
+            ctx.fillText('★', decoration.x + 30, decoration.y + 8);
+        }
+
+        function drawHospitalSign(decoration) {
+            // Sign shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(decoration.x + 2, decoration.y + 2, 70, 35);
+            
+            // Sign background with gradient
+            const signGradient = ctx.createLinearGradient(decoration.x, decoration.y, decoration.x, decoration.y + 35);
+            signGradient.addColorStop(0, '#F0F8FF');
+            signGradient.addColorStop(1, '#FFFFFF');
+            ctx.fillStyle = signGradient;
+            ctx.fillRect(decoration.x, decoration.y, 70, 35);
+            
+            // Sign border
+            ctx.strokeStyle = '#4682B4';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(decoration.x, decoration.y, 70, 35);
+            
+            // Red cross background
+            ctx.fillStyle = '#FFB6C1';
+            ctx.fillRect(decoration.x + 5, decoration.y + 5, 60, 25);
+            
+            // Red cross
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(decoration.x + 25, decoration.y + 8, 20, 19);
+            ctx.fillRect(decoration.x + 30, decoration.y + 5, 10, 25);
+            
+            // Text with shadow
+            ctx.fillStyle = '#4682B4';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('HOSPITAL', decoration.x + 8, decoration.y + 28);
+            ctx.fillStyle = '#000080';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('HOSPITAL', decoration.x + 7, decoration.y + 27);
+            
+            // Emergency symbol
+            ctx.fillStyle = '#FF0000';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('⚕', decoration.x + 5, decoration.y + 15);
+            ctx.fillText('⚕', decoration.x + 58, decoration.y + 15);
+        }
+
+        function drawEnhancedParkingSpace(space, index) {
+            // Parking space shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(space.x + 2, space.y + 2, space.width, space.height);
+            
+            // Parking space background with gradient
+            const spaceGradient = ctx.createLinearGradient(space.x, space.y, space.x, space.y + space.height);
+            spaceGradient.addColorStop(0, 'rgba(241, 196, 15, 0.3)');
+            spaceGradient.addColorStop(0.5, 'rgba(241, 196, 15, 0.1)');
+            spaceGradient.addColorStop(1, 'rgba(241, 196, 15, 0.3)');
+            ctx.fillStyle = spaceGradient;
+            ctx.fillRect(space.x, space.y, space.width, space.height);
+            
+            // Parking space border with gradient
+            const borderGradient = ctx.createLinearGradient(space.x, space.y, space.x + space.width, space.y);
+            borderGradient.addColorStop(0, '#FFD700');
+            borderGradient.addColorStop(0.5, '#f1c40f');
+            borderGradient.addColorStop(1, '#FFD700');
+            ctx.strokeStyle = borderGradient;
+            ctx.lineWidth = 4;
+            ctx.strokeRect(space.x, space.y, space.width, space.height);
+            
+            // Inner border for depth
+            ctx.strokeStyle = 'rgba(241, 196, 15, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(space.x + 2, space.y + 2, space.width - 4, space.height - 4);
+            
+            // Parking space number with enhanced styling
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            
+            // Text shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillText(`P${gameState.currentLevel}`, space.x + space.width / 2 + 1, space.y + space.height / 2 + 7);
+            
+            // Main text
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillText(`P${gameState.currentLevel}`, space.x + space.width / 2, space.y + space.height / 2 + 6);
+            
+            // Decorative corner elements
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(space.x + 2, space.y + 2, 4, 4);
+            ctx.fillRect(space.x + space.width - 6, space.y + 2, 4, 4);
+            ctx.fillRect(space.x + 2, space.y + space.height - 6, 4, 4);
+            ctx.fillRect(space.x + space.width - 6, space.y + space.height - 6, 4, 4);
+            
+            // Center line
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(space.x + space.width / 2, space.y + 5);
+            ctx.lineTo(space.x + space.width / 2, space.y + space.height - 5);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.textAlign = 'left';
+        }
+
+        // Game functions
+        function resetGame() {
+            car.x = 100;
+            car.y = 300;
+            car.angle = 0;
+            car.speed = 0;
+            gameState.isParked = false;
+            gameState.accuracy = 0;
+            document.getElementById('statusText').textContent = 'Ready to park!';
+            document.getElementById('statusText').style.color = '#ecf0f1';
+        }
+
+        // Menu and shop functions
+        function showMainMenu() {
+            document.getElementById('mainMenu').style.display = 'block';
+            document.getElementById('levelSelect').style.display = 'none';
+            document.getElementById('shop').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'none';
+            document.querySelector('.score-display').style.display = 'none';
+            document.getElementById('completionScreen').style.display = 'none';
+            document.querySelector('.floating-shop-btn').style.display = 'none';
+            updateCoinDisplay();
+            console.log('Main menu shown');
+        }
+
+        function showLevelSelect() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('levelSelect').style.display = 'block';
+            updateCoinDisplay();
+            updateLevelButtons();
+            console.log('Level select shown, completed levels:', playerData.completedLevels);
+        }
+
+        function showShop() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('shop').style.display = 'block';
+            updateCoinDisplay();
+            updateShopItems();
+        }
+
+        function startLevel(level) {
+            console.log('Starting level:', level, 'Completed levels:', playerData.completedLevels);
+            
+            // Check if level is available
+            if (level === 1 || playerData.completedLevels.includes(level)) {
+                document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('levelSelect').style.display = 'none';
+                document.getElementById('shop').style.display = 'none';
+                document.getElementById('gameCanvas').style.display = 'block';
+                document.querySelector('.score-display').style.display = 'block';
+                document.querySelector('.floating-shop-btn').style.display = 'block';
+                
+                gameState.currentLevel = level;
+                resetGame();
+            } else {
+                alert('Complete previous levels first!');
+            }
+        }
+
+        function buyItem(item, cost) {
+            if (playerData.coins >= cost && !playerData.purchasedItems.includes(item)) {
+                playerData.coins -= cost;
+                playerData.purchasedItems.push(item);
+                
+                if (item.includes('Car')) {
+                    playerData.currentCarColor = item.replace('Car', '');
+                } else if (item === 'speedBoost') {
+                    playerData.speedBoost = true;
+                    car.maxSpeed = 4.5;
+                } else if (item === 'betterSteering') {
+                    playerData.betterSteering = true;
+                    car.acceleration = 0.15;
+                } else if (item === 'biggerParkingSpace') {
+                    playerData.biggerParkingSpace = true;
+                }
+                
+                savePlayerData();
+                updateCoinDisplay();
+                updateShopItems();
+            }
+        }
+
+        function updateCoinDisplay() {
+            document.getElementById('totalCoins').textContent = playerData.coins;
+            document.getElementById('levelSelectCoins').textContent = playerData.coins;
+            document.getElementById('shopCoins').textContent = playerData.coins;
+        }
+
+        function updateLevelButtons() {
+            // Update all level buttons
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`level${i}Btn`) || document.querySelector(`[onclick="startLevel(${i})"]`);
+                if (btn) {
+                    if (i === 1 || playerData.completedLevels.includes(i)) {
+                        btn.classList.add('available');
+                    } else {
+                        btn.classList.remove('available');
+                    }
+                }
+            }
+        }
+
+        function updateShopItems() {
+            playerData.purchasedItems.forEach(item => {
+                const shopItem = document.getElementById(item);
+                if (shopItem) {
+                    shopItem.classList.add('purchased');
+                    const btn = shopItem.querySelector('.shop-btn');
+                    btn.textContent = 'Owned';
+                    btn.classList.add('purchased');
+                }
+            });
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress?')) {
+                playerData = {
+                    coins: 0,
+                    completedLevels: [1],
+                    purchasedItems: [],
+                    currentCarColor: 'red',
+                    speedBoost: false
+                };
+                savePlayerData();
+                updateCoinDisplay();
+                updateLevelButtons();
+                updateShopItems();
+                car.maxSpeed = 3;
+            }
+        }
+
+        function savePlayerData() {
+            localStorage.setItem('parkingCoins', playerData.coins.toString());
+            localStorage.setItem('completedLevels', JSON.stringify(playerData.completedLevels));
+            localStorage.setItem('purchasedItems', JSON.stringify(playerData.purchasedItems));
+            localStorage.setItem('carColor', playerData.currentCarColor);
+            localStorage.setItem('speedBoost', playerData.speedBoost.toString());
+            localStorage.setItem('betterSteering', playerData.betterSteering.toString());
+            localStorage.setItem('biggerParkingSpace', playerData.biggerParkingSpace.toString());
+        }
+
+        // Completion screen functions
+        function showCompletionScreen() {
+            document.getElementById('gameCanvas').style.display = 'none';
+            document.querySelector('.score-display').style.display = 'none';
+            document.getElementById('completionScreen').style.display = 'flex';
+            
+            // Update completion screen stats
+            document.getElementById('completionAccuracy').textContent = `${gameState.accuracy}%`;
+            document.getElementById('completionCoins').textContent = `+${gameState.coinsEarned}`;
+            document.getElementById('completionTotalCoins').textContent = playerData.coins;
+            document.getElementById('completionLevel').textContent = gameState.currentLevel;
+        }
+
+        function continueToNextLevel() {
+            const nextLevel = gameState.currentLevel + 1;
+            if (nextLevel <= 5 && playerData.completedLevels.includes(nextLevel)) {
+                hideCompletionScreen();
+                startLevel(nextLevel);
+            } else {
+                // No more levels available
+                hideCompletionScreen();
+                showMainMenu();
+            }
+        }
+
+        function goToShopFromCompletion() {
+            hideCompletionScreen();
+            showShop();
+        }
+
+        function goToMainMenuFromCompletion() {
+            hideCompletionScreen();
+            showMainMenu();
+        }
+
+        function hideCompletionScreen() {
+            document.getElementById('completionScreen').style.display = 'none';
+        }
+
+        // Main game loop
+        function gameLoop() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update game state
+            updateCar();
+            checkParking();
+            
+            // Draw everything
+            drawParkingLot();
+            drawCar();
+            
+            // Continue loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize the game
+        showMainMenu();
+        gameLoop();
+    </script>
+</body>
+</html>
