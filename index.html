@@ -2,197 +2,190 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Parking Lot Game</title>
+    <meta name="viewport" content="width=800, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Parking Lot Game</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%225%22 fill=%22%23f1c40f%22/><text x=%2216%22 y=%2222%22 font-size=%2218%22 text-anchor=%22middle%22 fill=%22%232c3e50%22 font-family=%22Arial%22>P</text></svg>">
     <style>
-        body {
+        html, body {
             margin: 0;
             padding: 0;
-            background: #2c3e50;
-            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+        }
+        body {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
         }
-
         #gameCanvas {
-            border: 3px solid #34495e;
-            border-radius: 5px;
+            border: 4px solid #34495e;
+            border-radius: 10px;
             background: #95a5a6;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.7);
             display: none;
+            outline: none;
         }
-
         .score-display {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            font-family: Arial, sans-serif;
-            font-size: 18px;
-            font-weight: bold;
+            top: 24px;
+            right: 24px;
+            background: rgba(30, 30, 40, 0.92);
+            color: #fff;
+            padding: 18px 22px;
+            border-radius: 14px;
+            font-size: 20px;
+            font-weight: 600;
             z-index: 1000;
-            min-width: 200px;
+            min-width: 220px;
             text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.25);
             display: none;
+            user-select: none;
         }
-
         .score-display .score {
-            font-size: 24px;
+            font-size: 28px;
             color: #f1c40f;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
         }
-
         .score-display .status {
-            font-size: 14px;
+            font-size: 15px;
             color: #ecf0f1;
         }
-
         .menu {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.98);
+            padding: 36px 32px 32px 32px;
+            border-radius: 18px;
+            box-shadow: 0 10px 40px rgba(44,62,80,0.18);
             text-align: center;
             max-width: 600px;
-            width: 90%;
+            width: 95vw;
+            margin: 0 auto;
+            animation: fadeIn 0.7s;
         }
-
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98);}
+            to { opacity: 1; transform: scale(1);}
+        }
         .menu h1 {
             color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 32px;
+            margin-bottom: 22px;
+            font-size: 36px;
+            letter-spacing: 1px;
+            font-weight: 800;
         }
-
         .coin-display {
-            background: #f1c40f;
+            background: linear-gradient(90deg, #f1c40f 60%, #ffe066 100%);
             color: #2c3e50;
-            padding: 10px 20px;
-            border-radius: 25px;
+            padding: 12px 28px;
+            border-radius: 30px;
             font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 20px;
+            margin-bottom: 24px;
             display: inline-block;
+            box-shadow: 0 2px 8px rgba(241,196,15,0.12);
         }
-
         .menu-buttons {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 18px;
+            margin-bottom: 36px;
         }
-
         .menu-btn {
-            background: #3498db;
+            background: linear-gradient(90deg, #3498db 80%, #2980b9 100%);
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .menu-btn:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
-
-        .menu-btn.secondary {
-            background: #e74c3c;
-        }
-
-        .menu-btn.secondary:hover {
-            background: #c0392b;
-        }
-
-        .menu-btn.shop {
-            background: #27ae60;
-            border: 3px solid #1e8449;
+            padding: 18px 36px;
             font-size: 20px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 2px 8px rgba(52,152,219,0.10);
         }
-
-        .menu-btn.shop:hover {
-            background: #229954;
+        .menu-btn:hover, .menu-btn:focus {
+            background: linear-gradient(90deg, #2980b9 80%, #3498db 100%);
+            transform: translateY(-2px) scale(1.03);
         }
-
+        .menu-btn.secondary {
+            background: linear-gradient(90deg, #e74c3c 80%, #c0392b 100%);
+        }
+        .menu-btn.secondary:hover, .menu-btn.secondary:focus {
+            background: linear-gradient(90deg, #c0392b 80%, #e74c3c 100%);
+        }
+        .menu-btn.shop {
+            background: linear-gradient(90deg, #27ae60 80%, #229954 100%);
+            border: 3px solid #1e8449;
+            font-size: 22px;
+        }
+        .menu-btn.shop:hover, .menu-btn.shop:focus {
+            background: linear-gradient(90deg, #229954 80%, #27ae60 100%);
+        }
         .level-select {
             display: none;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 18px;
             justify-content: center;
         }
-
         .level-btn {
             background: #95a5a6;
             color: white;
             border: none;
-            padding: 20px;
-            font-size: 16px;
+            padding: 24px 0;
+            font-size: 18px;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 120px;
+            transition: all 0.2s cubic-bezier(.4,0,.2,1);
+            min-width: 140px;
+            min-height: 80px;
             pointer-events: auto;
+            box-shadow: 0 2px 8px rgba(44,62,80,0.08);
         }
-
-        .level-btn:hover {
+        .level-btn:hover, .level-btn:focus {
             background: #7f8c8d;
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.04);
         }
-
         .level-btn.available {
-            background: #3498db;
+            background: linear-gradient(90deg, #3498db 80%, #2980b9 100%);
             cursor: pointer;
         }
-
-        .level-btn.available:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
+        .level-btn.available:hover, .level-btn.available:focus {
+            background: linear-gradient(90deg, #2980b9 80%, #3498db 100%);
         }
-
+        /* FIXED CSS ERROR: removed duplicate and incomplete .level-btn:not(.available) and .level-btn.available:hover blocks */
         .level-btn:not(.available) {
             cursor: not-allowed;
             opacity: 0.6;
         }
-
         .shop {
             display: none;
             text-align: left;
             max-height: 70vh;
             overflow-y: auto;
         }
-
         .shop-items {
             max-height: 50vh;
             overflow-y: auto;
             padding-right: 10px;
         }
-
         .shop-items::-webkit-scrollbar {
             width: 8px;
         }
-
         .shop-items::-webkit-scrollbar-track {
             background: #ecf0f1;
             border-radius: 4px;
         }
-
         .shop-items::-webkit-scrollbar-thumb {
             background: #bdc3c7;
             border-radius: 4px;
         }
-
         .shop-items::-webkit-scrollbar-thumb:hover {
             background: #95a5a6;
         }
-
         .shop-item {
             background: #ecf0f1;
             padding: 12px;
@@ -203,12 +196,10 @@
             align-items: center;
             font-size: 14px;
         }
-
         .shop-item.purchased {
             background: #d5dbdb;
             opacity: 0.7;
         }
-
         .shop-btn {
             background: #27ae60;
             color: white;
@@ -220,16 +211,13 @@
             font-size: 12px;
             white-space: nowrap;
         }
-
         .shop-btn:hover {
             background: #229954;
         }
-
         .shop-btn.purchased {
             background: #95a5a6;
             cursor: not-allowed;
         }
-
         .back-btn {
             background: #95a5a6;
             color: white;
@@ -239,11 +227,9 @@
             cursor: pointer;
             margin-bottom: 20px;
         }
-
         .back-btn:hover {
             background: #7f8c8d;
         }
-
         .completion-screen {
             display: none;
             position: fixed;
@@ -256,7 +242,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .completion-panel {
             background: white;
             padding: 40px;
@@ -498,6 +483,142 @@
                 </div>
                 <button class="shop-btn" onclick="buyItem('nightMode', 90)">90 coins</button>
             </div>
+
+            <h3 style="color: #2c3e50; margin: 15px 0 8px 0; font-size: 16px;">Special Car Models</h3>
+            <div class="shop-item" id="sportsCar">
+                <div>
+                    <strong>Sports Car</strong><br>
+                    <small>Sleek design with enhanced acceleration</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('sportsCar', 150)">150 coins</button>
+            </div>
+            <div class="shop-item" id="truckCar">
+                <div>
+                    <strong>Pickup Truck</strong><br>
+                    <small>Larger vehicle with better stability</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('truckCar', 200)">200 coins</button>
+            </div>
+            <div class="shop-item" id="luxuryCar">
+                <div>
+                    <strong>Luxury Sedan</strong><br>
+                    <small>Premium vehicle with gold accents</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('luxuryCar', 300)">300 coins</button>
+            </div>
+            <div class="shop-item" id="raceCar">
+                <div>
+                    <strong>Race Car</strong><br>
+                    <small>Formula-style racing vehicle</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('raceCar', 500)">500 coins</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin: 15px 0 8px 0; font-size: 16px;">Advanced Upgrades</h3>
+            <div class="shop-item" id="turboBoost">
+                <div>
+                    <strong>Turbo Boost</strong><br>
+                    <small>Temporary speed burst ability (Space key)</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('turboBoost', 180)">180 coins</button>
+            </div>
+            <div class="shop-item" id="precisionSteering">
+                <div>
+                    <strong>Precision Steering</strong><br>
+                    <small>Ultra-responsive steering control</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('precisionSteering', 250)">250 coins</button>
+            </div>
+            <div class="shop-item" id="parkingAssist">
+                <div>
+                    <strong>Parking Assist</strong><br>
+                    <small>Shows optimal parking path</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('parkingAssist', 400)">400 coins</button>
+            </div>
+            <div class="shop-item" id="magneticWheels">
+                <div>
+                    <strong>Magnetic Wheels</strong><br>
+                    <small>Better grip and control on all surfaces</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('magneticWheels', 320)">320 coins</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin: 15px 0 8px 0; font-size: 16px;">Special Abilities</h3>
+            <div class="shop-item" id="ghostMode">
+                <div>
+                    <strong>Ghost Mode</strong><br>
+                    <small>Phase through obstacles for 3 seconds (G key)</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('ghostMode', 600)">600 coins</button>
+            </div>
+            <div class="shop-item" id="timeSlowdown">
+                <div>
+                    <strong>Time Slowdown</strong><br>
+                    <small>Slow down time for precise parking (T key)</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('timeSlowdown', 450)">450 coins</button>
+            </div>
+            <div class="shop-item" id="teleportPark">
+                <div>
+                    <strong>Teleport Park</strong><br>
+                    <small>Instantly teleport to parking space (P key)</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('teleportPark', 800)">800 coins</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin: 15px 0 8px 0; font-size: 16px;">Enhanced Visual Effects</h3>
+            <div class="shop-item" id="neonLights">
+                <div>
+                    <strong>Neon Underglow</strong><br>
+                    <small>Colorful neon lights under your car</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('neonLights', 120)">120 coins</button>
+            </div>
+            <div class="shop-item" id="smokeTrail">
+                <div>
+                    <strong>Smoke Trail</strong><br>
+                    <small>Cool smoke effect behind your car</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('smokeTrail', 160)">160 coins</button>
+            </div>
+            <div class="shop-item" id="holographicCar">
+                <div>
+                    <strong>Holographic Effect</strong><br>
+                    <small>Makes your car semi-transparent</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('holographicCar', 280)">280 coins</button>
+            </div>
+            <div class="shop-item" id="fireworks">
+                <div>
+                    <strong>Success Fireworks</strong><br>
+                    <small>Fireworks display when parking perfectly</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('fireworks', 350)">350 coins</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin: 15px 0 8px 0; font-size: 16px;">Bonus Multipliers</h3>
+            <div class="shop-item" id="coinMultiplier">
+                <div>
+                    <strong>Coin Multiplier x2</strong><br>
+                    <small>Double coins earned from parking</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('coinMultiplier', 1000)">1000 coins</button>
+            </div>
+            <div class="shop-item" id="perfectParkBonus">
+                <div>
+                    <strong>Perfect Park Bonus</strong><br>
+                    <small>+50 bonus coins for 95%+ accuracy</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('perfectParkBonus', 750)">750 coins</button>
+            </div>
+            <div class="shop-item" id="speedParkBonus">
+                <div>
+                    <strong>Speed Park Bonus</strong><br>
+                    <small>Extra coins for parking quickly</small>
+                </div>
+                <button class="shop-btn" onclick="buyItem('speedParkBonus', 650)">650 coins</button>
+            </div>
         </div>
         <button class="back-btn" onclick="showMainMenu()">Back to Main Menu</button>
     </div>
@@ -545,7 +666,12 @@
             currentCarColor: localStorage.getItem('carColor') || 'red',
             speedBoost: JSON.parse(localStorage.getItem('speedBoost') || 'false'),
             betterSteering: JSON.parse(localStorage.getItem('betterSteering') || 'false'),
-            biggerParkingSpace: JSON.parse(localStorage.getItem('biggerParkingSpace') || 'false')
+            biggerParkingSpace: JSON.parse(localStorage.getItem('biggerParkingSpace') || 'false'),
+            currentCarModel: localStorage.getItem('carModel') || 'standard',
+            turboBoostAvailable: false,
+            ghostModeAvailable: false,
+            timeSlowdownAvailable: false,
+            teleportParkAvailable: false
         };
 
         // Car properties
@@ -573,7 +699,16 @@
             isParked: false,
             accuracy: 0,
             targetParkingSpace: null,
-            coinsEarned: 0
+            coinsEarned: 0,
+            turboActive: false,
+            ghostActive: false,
+            timeSlowActive: false,
+            timeSlowStartTime: 0,
+            ghostStartTime: 0,
+            turboStartTime: 0,
+            carTrail: [],
+            sparkles: [],
+            fireworks: []
         };
 
         // Level configurations with different themes
@@ -585,8 +720,15 @@
                 parkingSpaces: [
                     { x: 650, y: 200, width: 50, height: 80, angle: 0, occupied: false }
                 ],
-                obstacles: [],
-                decorations: []
+                obstacles: [
+                    { x: 300, y: 150, width: 60, height: 25, type: "parked_car" },
+                    { x: 200, y: 400, width: 40, height: 20, type: "trash_bin" }
+                ],
+                decorations: [
+                    { x: 50, y: 50, type: "lamp_post" },
+                    { x: 400, y: 50, type: "lamp_post" },
+                    { x: 700, y: 50, type: "lamp_post" }
+                ]
             },
             // Level 2 - Bakery District (Crowded)
             {
@@ -596,13 +738,16 @@
                     { x: 650, y: 250, width: 45, height: 75, angle: 0, occupied: false }
                 ],
                 obstacles: [
-                    { x: 200, y: 150, width: 80, height: 20, type: "delivery_truck" },
-                    { x: 400, y: 450, width: 60, height: 25, type: "cart" }
+                    { x: 200, y: 150, width: 80, height: 25, type: "delivery_truck" },
+                    { x: 400, y: 450, width: 60, height: 25, type: "cart" },
+                    { x: 150, y: 350, width: 50, height: 20, type: "parked_car" },
+                    { x: 500, y: 200, width: 15, height: 15, type: "cone" }
                 ],
                 decorations: [
                     { x: 100, y: 100, type: "bakery_sign" },
                     { x: 300, y: 80, type: "crowd" },
-                    { x: 500, y: 120, type: "bakery_sign" }
+                    { x: 500, y: 120, type: "bakery_sign" },
+                    { x: 50, y: 300, type: "flower_box" }
                 ]
             },
             // Level 3 - Office Building
@@ -614,12 +759,16 @@
                 ],
                 obstacles: [
                     { x: 250, y: 200, width: 100, height: 30, type: "construction_barrier" },
-                    { x: 450, y: 400, width: 70, height: 20, type: "cone" }
+                    { x: 450, y: 400, width: 70, height: 20, type: "cone" },
+                    { x: 180, y: 350, width: 55, height: 22, type: "parked_car" },
+                    { x: 350, y: 150, width: 15, height: 15, type: "cone" },
+                    { x: 500, y: 500, width: 25, height: 25, type: "planter" }
                 ],
                 decorations: [
                     { x: 150, y: 50, type: "office_building" },
                     { x: 350, y: 60, type: "office_building" },
-                    { x: 550, y: 70, type: "office_building" }
+                    { x: 550, y: 70, type: "office_building" },
+                    { x: 100, y: 450, type: "bench" }
                 ]
             },
             // Level 4 - Shopping Mall
@@ -632,12 +781,16 @@
                 obstacles: [
                     { x: 180, y: 180, width: 90, height: 25, type: "shopping_cart" },
                     { x: 380, y: 320, width: 85, height: 25, type: "shopping_cart" },
-                    { x: 280, y: 480, width: 95, height: 25, type: "shopping_cart" }
+                    { x: 280, y: 480, width: 95, height: 25, type: "shopping_cart" },
+                    { x: 150, y: 400, width: 50, height: 20, type: "parked_car" },
+                    { x: 500, y: 150, width: 15, height: 15, type: "cone" },
+                    { x: 350, y: 250, width: 20, height: 20, type: "planter" }
                 ],
                 decorations: [
                     { x: 80, y: 90, type: "mall_sign" },
                     { x: 280, y: 85, type: "mall_sign" },
-                    { x: 480, y: 95, type: "mall_sign" }
+                    { x: 480, y: 95, type: "mall_sign" },
+                    { x: 600, y: 150, type: "fountain" }
                 ]
             },
             // Level 5 - Hospital (Emergency)
@@ -650,12 +803,16 @@
                 obstacles: [
                     { x: 200, y: 150, width: 120, height: 35, type: "ambulance" },
                     { x: 350, y: 350, width: 80, height: 30, type: "emergency_cone" },
-                    { x: 450, y: 500, width: 100, height: 35, type: "ambulance" }
+                    { x: 450, y: 500, width: 100, height: 35, type: "ambulance" },
+                    { x: 150, y: 300, width: 50, height: 20, type: "parked_car" },
+                    { x: 300, y: 250, width: 15, height: 15, type: "emergency_cone" },
+                    { x: 500, y: 200, width: 25, height: 25, type: "medical_cart" }
                 ],
                 decorations: [
                     { x: 120, y: 60, type: "hospital_sign" },
                     { x: 320, y: 65, type: "hospital_sign" },
-                    { x: 520, y: 70, type: "hospital_sign" }
+                    { x: 520, y: 70, type: "hospital_sign" },
+                    { x: 100, y: 500, type: "emergency_light" }
                 ]
             }
         ];
@@ -693,6 +850,11 @@
 
         // Car physics
         function updateCar() {
+            // Store previous position for collision rollback
+            const prevX = car.x;
+            const prevY = car.y;
+            const prevAngle = car.angle;
+            
             // Handle movement
             if (gameState.isMoving) {
                 if (gameState.moveDirection === 'forward') {
@@ -708,7 +870,7 @@
 
             // Handle steering
             if (gameState.isSteering && Math.abs(car.speed) > 0.1) {
-                const steeringForce = 0.03;
+                const steeringForce = playerData.betterSteering ? 0.04 : 0.03;
                 if (gameState.steeringDirection === 'left') {
                     car.angle -= steeringForce * (car.speed / car.maxSpeed);
                 } else if (gameState.steeringDirection === 'right') {
@@ -720,7 +882,19 @@
             car.x += Math.cos(car.angle) * car.speed;
             car.y += Math.sin(car.angle) * car.speed;
 
-            // Boundary checking
+            // Check for collisions
+            if (checkCollisions()) {
+                // Rollback to previous position if collision detected
+                car.x = prevX;
+                car.y = prevY;
+                car.angle = prevAngle;
+                car.speed = 0; // Stop the car on collision
+                
+                // Add collision feedback
+                flashCollisionWarning();
+            }
+
+            // Boundary checking (keep existing boundary collision)
             car.x = Math.max(20, Math.min(canvas.width - car.width - 20, car.x));
             car.y = Math.max(20, Math.min(canvas.height - car.height - 20, car.y));
 
@@ -732,6 +906,75 @@
 
         if (!keys['ArrowUp'] && !keys['KeyW'] && !keys['ArrowDown'] && !keys['KeyS']) stopMoving();
         if (!keys['ArrowLeft'] && !keys['KeyA'] && !keys['ArrowRight'] && !keys['KeyD']) stopSteering();
+        }
+
+        // Collision detection functions
+        function checkCollisions() {
+            const levelConfig = getCurrentLevelConfig();
+            
+            // Check collision with obstacles
+            for (let obstacle of levelConfig.obstacles) {
+                if (checkRectangleCollision(getCarBounds(), obstacle)) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        function getCarBounds() {
+            // Get the car's rotated bounding box
+            const cos = Math.cos(car.angle);
+            const sin = Math.sin(car.angle);
+            
+            // Car corners relative to center
+            const corners = [
+                { x: -car.width / 2, y: -car.height / 2 },
+                { x: car.width / 2, y: -car.height / 2 },
+                { x: car.width / 2, y: car.height / 2 },
+                { x: -car.width / 2, y: car.height / 2 }
+            ];
+            
+            // Rotate corners and translate to world position
+            const rotatedCorners = corners.map(corner => ({
+                x: car.x + car.width / 2 + (corner.x * cos - corner.y * sin),
+                y: car.y + car.height / 2 + (corner.x * sin + corner.y * cos)
+            }));
+            
+            // Return axis-aligned bounding box for simplified collision
+            const minX = Math.min(...rotatedCorners.map(c => c.x));
+            const maxX = Math.max(...rotatedCorners.map(c => c.x));
+            const minY = Math.min(...rotatedCorners.map(c => c.y));
+            const maxY = Math.max(...rotatedCorners.map(c => c.y));
+            
+            return {
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY
+            };
+        }
+
+        function checkRectangleCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function flashCollisionWarning() {
+            // Add visual feedback for collision
+            const statusElement = document.getElementById('statusText');
+            const originalColor = statusElement.style.color;
+            const originalText = statusElement.textContent;
+            
+            statusElement.style.color = '#FF0000';
+            statusElement.textContent = 'COLLISION! Watch out for obstacles!';
+            
+            setTimeout(() => {
+                statusElement.style.color = originalColor;
+                statusElement.textContent = originalText;
+            }, 1000);
         }
 
         // Get current level configuration
